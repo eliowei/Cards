@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        .card {
+            width: 50px;
+            height: 90px;
+            position: relative;
+            margin: 10px;
+            float: left;
+            /* 設定內層元素在 3D 空間內 */
+            transform-style: preserve-3d;
+            transition: transform 1s;
+        }
+
+        .card-front {
+            width: 100%;
+            height: 100%;
+            background-image: url('./cards/1H.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: absolute;
+            backface-visibility: hidden;
+        }
+
+        .card-back {
+            width: 100%;
+            height: 100%;
+            background-image: url('./cards/Red_back.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: absolute;
+            backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+
+        .card-close {
+            transform: rotateY(180deg);
+        }
+
+        .list {
+            width: 500px;
+            height: 30px;
+            display: flex;
+            margin-bottom: 1rem;
+            justify-content: space-around;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="list">
+        <input type="button" value="卡牌順序:紅心" class="list-btn1">
+        <input type="button" value="重新開始遊戲" class="list-btn2">
+        <input type="button" value="卡牌背面顏色:紅色" class="list-btn3">
+        <input type="button" value="透視模式" class="list-btn4">
+        <input type="button" value="卡牌數量:20" class="list-btn5">
+    </div>
+    <div id="game"></div>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'
+        integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=='
+        crossorigin='anonymous'></script>
+    <script>
+        // 卡牌開始順序 紅心、方塊、梅花、黑桃
+        let cardType = 'H'
+        // 卡牌背面顏色
+        let cardBackColor = 'Red_back'
+        // 透視模式狀態
+        let isPerspective = false
+        // 卡牌上限
+        let cardMax = 20;
+
+        // 卡牌開始順序
+        $('.list-btn1').on('click', () => {
+            switch (cardType) {
+                case 'H': {
+                    cardType = 'D'
+                    $('.list-btn1').attr('value', '卡牌順序:方塊')
+                    break;
+                }
+                case 'D': {
+                    cardType = 'C'
+                    $('.list-btn1').attr('value', '卡牌順序:梅花')
+                    break;
+                }
+                case 'C': {
+                    cardType = 'S'
+                    $('.list-btn1').attr('value', '卡牌順序:黑桃')
+                    break;
+                }
+                case 'S': {
+                    cardType = 'H'
+                    $('.list-btn1').attr('value', '卡牌順序:紅心')
+                    break;
+                }
+            }
+        })
+
+        // 重新開始遊戲
+        $('.list-btn2').on('click', () => {
+            $('#game').empty()
+            createCard()
+            isPerspective = false;
+            cardRandomChange()
+        })
+
+        // 卡牌背面樣式
+        $('.list-btn3').on('click', changeCardBackColor)
+
+        // 切換透視模式
+        $('.list-btn4').on('click', () => {
+            isPerspective = !isPerspective
+            $('.card').children().toggleClass('card-back')
+        })
+
+        // 更換卡牌數量
+        $('.list-btn5').on('click', () => {
+            if (cardMax === 20)
+                cardMax = 40
+            else if (cardMax === 40)
+                cardMax = 60
+            else if (cardMax === 60)
+                cardMax = 80
+            else if (cardMax === 80)
+                cardMax = 20
+            $('.list-btn5').attr('value', `卡牌數量:${cardMax}`)
+        })
+
+        // 更換卡牌背面顏色
+        function changeCardBackColor() {
+            switch (cardBackColor) {
+                case 'Red_back': {
+                    cardBackColor = 'blue_back'
+                    $('.list-btn3').attr('value', "卡牌背面顏色:藍色")
+                    break;
+                }
+                case 'blue_back': {
+                    cardBackColor = 'Yellow_back'
+                    $('.list-btn3').attr('value', "卡牌背面顏色:黃色")
+                    break;
+                }
+                case 'Yellow_back': {
+                    cardBackColor = 'Green_back'
+                    $('.list-btn3').attr('value', "卡牌背面顏色:綠色")
+                    break;
+                }
+                case 'Green_back': {
+                    cardBackColor = 'purple_back'
+                    $('.list-btn3').attr('value', "卡牌背面顏色:紫色")
+                    break;
+                }
+                case 'purple_back': {
+                    cardBackColor = 'Gray_back'
+                    $('.list-btn3').attr('value', "卡牌背面顏色:灰色")
+                    break;
+                }
+                case 'Gray_back': {
+                    cardBackColor = 'Red_back'
+                    $('.list-btn3').attr('value', "卡牌背面顏色:紅色")
+                    break;
+                }
+            }
+        }
+
+        // 產生卡牌
+        createCard()
+        function createCard() {
+            for (let i = 0; i < cardMax; i++) {
+                const card = $(`
+            <div class="card card-close">
+                <div class="card-front"></div>
+                <div class="card-back"></div>
+            </div>
+            `)
+                const number = i % 10 + 1
+
+                if (i === 20) {
+                    cardType = checkCard(cardType)
+                }
+
+                if (i === 40) {
+                    cardType = checkCard(cardType)
+                }
+
+                if (i === 60) {
+                    cardType = checkCard(cardType)
+                }
+
+                card.find('.card-front').css('background-image', `url(./cards/${number}${cardType}.jpg)`)
+                card.find('.card-back').css('background-image', `url('./cards/${cardBackColor}.jpg')`)
+                card.attr('data-number', number + cardType)
+                $('#game').append(card)
+            }
+        }
+
+        // 更換卡牌種類
+        function checkCard(type) {
+            switch (cardType) {
+                case 'H': {
+                    return 'D'
+                }
+                case 'D': {
+                    return 'C'
+                }
+                case 'C': {
+                    return 'S'
+                }
+                case 'S': {
+                    return 'H'
+                }
+            }
+        }
+
+        // 打亂
+        cardRandomChange()
+        function cardRandomChange() {
+            for (let i = 0; i < cardMax; i++) {
+                const cardMaxRandom = cardMax - 1
+                const randA = Math.round(Math.random() * cardMaxRandom)
+                const randB = Math.round(Math.random() * cardMaxRandom)
+                // console.log(randA, randB, cardMaxRandom)
+                $('.card').eq(randA).insertAfter($('.card').eq(randB))
+            }
+        }
+
+        $(document).on('click', '.card', function () {
+            // 透視模式開啟時不能翻牌
+            if (isPerspective) {
+                return;
+            }
+
+            // 翻牌
+            if (
+                // .card 沒有 .card-close 代表被翻開
+                // 已翻開的數量 < 2
+                $('.card:not(.card-close)').length < 2 &&
+                // 這張牌還沒被翻開
+                $(this).hasClass('card-close') &&
+                // 這張牌還沒配對
+                !$(this).hasClass('card-ok')
+            ) {
+                $(this).removeClass('card-close')
+            }
+
+            // 如果翻開兩張了
+            if ($('.card:not(.card-close)').length === 2) {
+                // 兩張都一樣
+                if (
+                    $('.card:not(.card-close)').eq(0).attr('data-number') ===
+                    $('.card:not(.card-close)').eq(1).attr('data-number')
+                ) {
+                    // 標記已配對
+                    $('.card:not(.card-close)').addClass('card-ok')
+                    $('.card:not(.card-close)').fadeTo(1000, 0)
+                }
+
+                // 等一秒鐘動畫結束
+                setTimeout(function () {
+                    // 不館有沒有配對成功都翻回背面
+                    $('.card:not(.card-close)').addClass('card-close')
+
+                    // 已配對數量 = 卡片數量，過關
+                    if ($('.card-ok').length == $('.card').length) {
+                        alert('過關')
+                    }
+                }, 1000)
+
+            }
+        })
+    </script>
+</body>
+
+</html>
