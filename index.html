@@ -61,7 +61,7 @@
         <input type="button" value="重新開始遊戲" class="list-btn2">
         <input type="button" value="卡牌背面顏色:紅色" class="list-btn3">
         <input type="button" value="透視模式" class="list-btn4">
-        <input type="button" value="卡牌數量:20" class="list-btn5">
+        <input type="button" value="卡牌數量:26" class="list-btn5">
     </div>
     <div id="game"></div>
 
@@ -76,7 +76,10 @@
         // 透視模式狀態
         let isPerspective = false
         // 卡牌上限
-        let cardMax = 20;
+        let cardMax = 26;
+        // 卡牌名稱
+        const cardName = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+
 
         // 卡牌開始順序
         $('.list-btn1').on('click', () => {
@@ -123,14 +126,14 @@
 
         // 更換卡牌數量
         $('.list-btn5').on('click', () => {
-            if (cardMax === 20)
-                cardMax = 40
-            else if (cardMax === 40)
-                cardMax = 60
-            else if (cardMax === 60)
-                cardMax = 80
-            else if (cardMax === 80)
-                cardMax = 20
+            if (cardMax === 26)
+                cardMax = 52
+            else if (cardMax === 52)
+                cardMax = 78
+            else if (cardMax === 78)
+                cardMax = 104
+            else if (cardMax === 104)
+                cardMax = 26
             $('.list-btn5').attr('value', `卡牌數量:${cardMax}`)
         })
 
@@ -170,6 +173,10 @@
             }
         }
 
+        for (let i = 0; i < 52; i++) {
+            console.log(i % 13 + 1)
+        }
+
         // 產生卡牌
         createCard()
         function createCard() {
@@ -180,21 +187,21 @@
                 <div class="card-back"></div>
             </div>
             `)
-                const number = i % 10 + 1
+                const number = i % 13 + 1
 
-                if (i === 20) {
+                if (i === 26) {
                     cardType = checkCard(cardType)
                 }
 
-                if (i === 40) {
+                if (i === 52) {
                     cardType = checkCard(cardType)
                 }
 
-                if (i === 60) {
+                if (i === 78) {
                     cardType = checkCard(cardType)
                 }
 
-                card.find('.card-front').css('background-image', `url(./cards/${number}${cardType}.jpg)`)
+                card.find('.card-front').css('background-image', `url(./cards/${cardName[number]}${cardType}.jpg)`)
                 card.find('.card-back').css('background-image', `url('./cards/${cardBackColor}.jpg')`)
                 card.attr('data-number', number + cardType)
                 $('#game').append(card)
