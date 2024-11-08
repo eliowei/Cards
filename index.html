@@ -45,6 +45,21 @@
             transform: rotateY(180deg);
         }
 
+        .card-rgb{
+            /* filter:drop-shadow(5px 5px 5px rgb(3, 214, 186)) */
+            /* animation: name duration timing-function delay iteration-count direction fill-mode; */
+            animation: animate 20s alternate infinite;
+        }
+
+        @keyframes animate {
+            0%{
+                filter:drop-shadow(5px 5px 5px rgb(255, 0, 0))
+            }
+            100%{
+                filter:drop-shadow(5px 5px 5px rgb(0, 0, 255)) 
+            }
+        }
+
         .list {
             width: 500px;
             height: 30px;
@@ -63,6 +78,8 @@
         <input type="button" value="透視模式" class="list-btn4">
         <input type="button" value="卡牌數量:26" class="list-btn5">
     </div>
+    <div>目前猜測次數:<span class="text-guesses">0</span></div>
+    <div>最少猜測玩家:<span class="text-minguesses-player">-</span> | 最少總猜測次數:<span class="text-minguesses">0</span> | 卡牌數量:<span class="text-totalcards">26</span></div>
     <div id="game"></div>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'
@@ -79,8 +96,37 @@
         let cardMax = 26;
         // 卡牌名稱
         const cardName = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+        // 猜測次數
+        let guessesCount = 0;
+        // 最低猜測次數
+        let minGuessCount = 0;
+        // 最低猜測玩家
+        let minGuessPlayer = 0;
+        //
+        const minguesses = [
+            {
+            name:'-',
+            guesses: 0,
+            totalCards: 26
+            },
+            {
+            name:'-',
+            guesses: 0,
+            totalCards: 52               
+            },
+            {
+            name:'-',
+            guesses: 0,
+            totalCards: 78               
+            },
+            {
+            name:'-',
+            guesses: 0,
+            totalCards: 104               
+            }        
+        ]
 
-
+        loadData()
         // 卡牌開始順序
         $('.list-btn1').on('click', () => {
             switch (cardType) {
@@ -113,6 +159,15 @@
             createCard()
             isPerspective = false;
             cardRandomChange()
+            guessesCount = 0;
+            $('.text-guesses').text(`${guessesCount}`)
+            for(const cards of minguesses){
+                if(cards.totalCards === cardMax){
+                    $('.text-minguesses-player').text(cards.name)
+                    $('.text-minguesses').text(cards.guesses)
+                    $('.text-totalcards').text(cards.totalCards)
+                }
+            }
         })
 
         // 卡牌背面樣式
@@ -173,44 +228,37 @@
             }
         }
 
-        for (let i = 0; i < 52; i++) {
-            console.log(i % 13 + 1)
-        }
-
         // 產生卡牌
         createCard()
         function createCard() {
+            let cardTypeTemp = cardType;
+            let counts = 0;
             for (let i = 0; i < cardMax; i++) {
                 const card = $(`
             <div class="card card-close">
-                <div class="card-front"></div>
-                <div class="card-back"></div>
+                <div class="card-front card-rgb"></div>
+                <div class="card-back card-rgb"></div>
             </div>
             `)
                 const number = i % 13 + 1
 
-                if (i === 26) {
-                    cardType = checkCard(cardType)
+                if((i % 13 + 1) === 13){
+                    counts += 1;
+                    if(counts % 2 === 0){
+                        cardTypeTemp = checkCard(cardTypeTemp)
+                    }
                 }
 
-                if (i === 52) {
-                    cardType = checkCard(cardType)
-                }
-
-                if (i === 78) {
-                    cardType = checkCard(cardType)
-                }
-
-                card.find('.card-front').css('background-image', `url(./cards/${cardName[number]}${cardType}.jpg)`)
+                card.find('.card-front').css('background-image', `url(./cards/${cardName[number]}${cardTypeTemp}.jpg)`)
                 card.find('.card-back').css('background-image', `url('./cards/${cardBackColor}.jpg')`)
-                card.attr('data-number', number + cardType)
+                card.attr('data-number', number + cardTypeTemp)
                 $('#game').append(card)
             }
         }
 
         // 更換卡牌種類
         function checkCard(type) {
-            switch (cardType) {
+            switch (type) {
                 case 'H': {
                     return 'D'
                 }
@@ -259,6 +307,10 @@
 
             // 如果翻開兩張了
             if ($('.card:not(.card-close)').length === 2) {
+                // 紀錄猜測次數
+                guessesCount += 1
+                $('.text-guesses').text(`${guessesCount}`)
+
                 // 兩張都一樣
                 if (
                     $('.card:not(.card-close)').eq(0).attr('data-number') ===
@@ -277,11 +329,50 @@
                     // 已配對數量 = 卡片數量，過關
                     if ($('.card-ok').length == $('.card').length) {
                         alert('過關')
+                        
+                        for (const [index, cards] of minguesses.entries()){
+                            if(cards.totalCards === cardMax){
+                                if(cards.guesses === 0){
+                                    saveData(index)
+                                } else if(guessesCount < cards.guesses){
+                                    saveData(index)
+                                }
+                            }
+                        }
+
+                        guessesCount = 0;
+                        $('.text-guesses').text(`${guessesCount}`)
                     }
                 }, 1000)
 
             }
         })
+
+        function loadData(){
+            if(localStorage.card){
+            const data = JSON.parse(localStorage.card)
+            
+            for(const [index, cards] of minguesses.entries()){
+                cards.name = data[index].name
+                cards.guesses = data[index].guesses
+            }
+
+            $('.text-minguesses-player').text(minguesses[0].name)
+            $('.text-minguesses').text(minguesses[0].guesses)
+            }
+        }
+
+        function saveData(numbers){
+            const name = prompt(`恭喜你成功破關！卡片數量:${cardMax} 總猜測次數：${guessesCount}，請輸入名子`) || 'user'
+
+            minguesses[numbers].guesses = guessesCount
+            minguesses[numbers].name = name
+            $('.text-minguesses-player').text(minguesses[numbers].name)
+            $('.text-minguesses').text(minguesses[numbers].guesses)
+            // 儲存最低猜測玩家資料
+            localStorage.card = JSON.stringify(minguesses)
+        }
+
     </script>
 </body>
 
