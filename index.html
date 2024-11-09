@@ -93,12 +93,12 @@
 
 <body>
     <div class="list">
-        <input type="button" value="卡牌順序:紅心" class="list-btn1">
-        <input type="button" value="重新開始遊戲" class="list-btn2">
-        <input type="button" value="卡牌背面顏色:紅色" class="list-btn3">
-        <input type="button" value="透視模式" class="list-btn4">
-        <input type="button" value="卡牌數量:26" class="list-btn5">
-        <input type="button" value="夜" class="list-btn6">
+        <input type="button" value="卡牌順序:紅心" class="button-sort-suits">
+        <input type="button" value="重新開始遊戲" class="button-restart">
+        <input type="button" value="卡牌背面顏色:紅色" class="button-card-back-color">
+        <input type="button" value="透視模式" class="button-perspective">
+        <input type="button" value="卡牌數量:26" class="button-card-quantity">
+        <input type="button" value="夜" class="button-theme-toggle">
     </div>
     <div>目前猜測次數:<span class="text-guesses">0</span></div>
     <div>最少猜測玩家:<span class="text-minguesses-player">-</span> | 最少總猜測次數:<span class="text-minguesses">0</span> | 卡牌數量:<span class="text-totalcards">26</span></div>
@@ -152,33 +152,33 @@
 
         loadData()
         // 卡牌開始順序
-        $('.list-btn1').on('click', () => {
+        $('.button-sort-suits').on('click', () => {
             switch (cardType) {
                 case 'H': {
                     cardType = 'D'
-                    $('.list-btn1').attr('value', '卡牌順序:方塊')
+                    $('.button-sort-suits').attr('value', '卡牌順序:方塊')
                     break;
                 }
                 case 'D': {
                     cardType = 'C'
-                    $('.list-btn1').attr('value', '卡牌順序:梅花')
+                    $('.button-sort-suits').attr('value', '卡牌順序:梅花')
                     break;
                 }
                 case 'C': {
                     cardType = 'S'
-                    $('.list-btn1').attr('value', '卡牌順序:黑桃')
+                    $('.button-sort-suits').attr('value', '卡牌順序:黑桃')
                     break;
                 }
                 case 'S': {
                     cardType = 'H'
-                    $('.list-btn1').attr('value', '卡牌順序:紅心')
+                    $('.button-sort-suits').attr('value', '卡牌順序:紅心')
                     break;
                 }
             }
         })
 
         // 重新開始遊戲
-        $('.list-btn2').on('click', () => {
+        $('.button-restart').on('click', () => {
             $('#game').empty()
             createCard()
             isPerspective = false;
@@ -195,16 +195,16 @@
         })
 
         // 卡牌背面樣式
-        $('.list-btn3').on('click', changeCardBackColor)
+        $('.button-card-back-color').on('click', changeCardBackColor)
 
         // 切換透視模式
-        $('.list-btn4').on('click', () => {
+        $('.button-perspective').on('click', () => {
             isPerspective = !isPerspective
             $('.card').children().toggleClass('card-back')
         })
 
         // 更換卡牌數量
-        $('.list-btn5').on('click', () => {
+        $('.button-card-quantity').on('click', () => {
             if (cardMax === 26)
                 cardMax = 52
             else if (cardMax === 52)
@@ -213,10 +213,10 @@
                 cardMax = 104
             else if (cardMax === 104)
                 cardMax = 26
-            $('.list-btn5').attr('value', `卡牌數量:${cardMax}`)
+            $('.button-card-quantity').attr('value', `卡牌數量:${cardMax}`)
         })
 
-        $('.list-btn6').on('click', () => {
+        $('.button-theme-toggle').on('click', () => {
             isTheme = !isTheme
             checkTheme()
             localStorage.setItem('theme', isTheme)
@@ -227,32 +227,32 @@
             switch (cardBackColor) {
                 case 'Red_back': {
                     cardBackColor = 'blue_back'
-                    $('.list-btn3').attr('value', "卡牌背面顏色:藍色")
+                    $('.button-card-back-color').attr('value', "卡牌背面顏色:藍色")
                     break;
                 }
                 case 'blue_back': {
                     cardBackColor = 'Yellow_back'
-                    $('.list-btn3').attr('value', "卡牌背面顏色:黃色")
+                    $('.button-card-back-color').attr('value', "卡牌背面顏色:黃色")
                     break;
                 }
                 case 'Yellow_back': {
                     cardBackColor = 'Green_back'
-                    $('.list-btn3').attr('value', "卡牌背面顏色:綠色")
+                    $('.button-card-back-color').attr('value', "卡牌背面顏色:綠色")
                     break;
                 }
                 case 'Green_back': {
                     cardBackColor = 'purple_back'
-                    $('.list-btn3').attr('value', "卡牌背面顏色:紫色")
+                    $('.button-card-back-color').attr('value', "卡牌背面顏色:紫色")
                     break;
                 }
                 case 'purple_back': {
                     cardBackColor = 'Gray_back'
-                    $('.list-btn3').attr('value', "卡牌背面顏色:灰色")
+                    $('.button-card-back-color').attr('value', "卡牌背面顏色:灰色")
                     break;
                 }
                 case 'Gray_back': {
                     cardBackColor = 'Red_back'
-                    $('.list-btn3').attr('value', "卡牌背面顏色:紅色")
+                    $('.button-card-back-color').attr('value', "卡牌背面顏色:紅色")
                     break;
                 }
             }
@@ -408,12 +408,12 @@
 
         function checkTheme(){
             if(isTheme){
-                $('.list-btn6').val('日')
+                $('.button-theme-toggle').val('日')
                 $('body').addClass('dark-mode')
                 $('span').addClass('dark-mode')  
                 $('.list>input').addClass('dark-mode-button')
             } else if(!isTheme) {
-                $('.list-btn6').val('夜')
+                $('.button-theme-toggle').val('夜')
                 $('body').removeClass('dark-mode')
                 $('span').removeClass('dark-mode')  
                 $('.list>input').removeClass('dark-mode-button')
