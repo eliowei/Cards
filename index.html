@@ -193,6 +193,10 @@
 
         // 重新開始遊戲
         $('.button-restart').on('click', () => {
+            Swal.fire({
+                title: "重新開始遊戲",
+                icon: "success"
+            });
             restartGame()
         })
 
@@ -441,7 +445,10 @@
                     isCardActiveState = false;
                     // 已配對數量 = 卡片數量，過關
                     if ($('.card-ok').length == $('.card').length) {
-                        alert('過關')
+                        Swal.fire({
+                            title: "過關!!",
+                            icon: "success"
+                        });
 
                         for (const [index, cards] of minguesses.entries()) {
                             if (cards.totalCards === cardMax) {
@@ -456,7 +463,10 @@
                         guessesCount = 0;
                         $('.text-guesses').text(`${guessesCount}`)
                     } else if (limitCount != 0 && guessesCount > limitCount) {
-                        alert('超過限制次數了!!遊戲結束!!')
+                        Swal.fire({
+                            title: "超過限制次數了!!遊戲結束!!",
+                            icon: "error"
+                        });
                         restartGame()
                     }
                 }, 1000)
