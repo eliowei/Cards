@@ -88,6 +88,12 @@
             background: black;
             color: #fff;
         }
+
+        .select-box {
+            text-align: start;
+            padding: 1rem;
+            border-radius: 10px;
+        }
     </style>
 </head>
 
@@ -97,14 +103,16 @@
         <input type="button" value="重新開始遊戲" class="button-restart">
         <input type="button" value="卡牌背面顏色:紅色" class="button-card-back-color">
         <input type="button" value="透視模式" class="button-perspective">
-        <input type="button" value="卡牌數量:26" class="button-card-quantity">
+        <input type="button" value="難度選擇" class="button-card-quantity">
         <input type="button" value="夜" class="button-theme-toggle">
     </div>
-    <div>目前猜測次數:<span class="text-guesses">0</span></div>
+    <div>目前猜測次數:<span class="text-guesses">0</span> | 限制次數:<span class="text-limit">不限制</span></div>
     <div>最少猜測玩家:<span class="text-minguesses-player">-</span> | 最少總猜測次數:<span class="text-minguesses">0</span> |
-        卡牌數量:<span class="text-totalcards">26</span></div>
+        卡牌數量:<span class="text-totalcards">26</span> | 限制次數:<span class="text-minguesseslimit">不限制</span></div>
     <div id="game"></div>
 
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'
         integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=='
         crossorigin='anonymous'></script>
@@ -121,38 +129,52 @@
         const cardName = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
         // 猜測次數
         let guessesCount = 0;
+        // 卡牌翻牌的狀態
+        let isCardActiveState = false;
         // 最低猜測次數
         let minGuessCount = 0;
         // 最低猜測玩家
         let minGuessPlayer = 0;
+        // 限制次數
+        let limitCount = 0;
+        // 限制暫存次數
+        let limitTempCount = 0;
+        // 目前限制次數的索引
+        let limitCountIndex = 0;
+        // 限制次數顯示
+        const limitCountName = ['不限制', '1倍', '1.5倍', '2倍']
         //紀錄
         const minguesses = [
             {
-                name: '-',
-                guesses: 0,
-                totalCards: 26
+                name: ['-', '-', '-', '-'],
+                guesses: [0, 0, 0, 0],
+                totalCards: 26,
+                limitCounts: [0, 13, Math.floor(13 * 1.5), 13 * 2]
             },
             {
-                name: '-',
-                guesses: 0,
-                totalCards: 52
+                name: ['-', '-', '-', '-'],
+                guesses: [0, 0, 0, 0],
+                totalCards: 52,
+                limitCounts: [0, 26, Math.floor(26 * 1.5), 26 * 2]
             },
             {
-                name: '-',
-                guesses: 0,
-                totalCards: 78
+                name: ['-', '-', '-', '-'],
+                guesses: [0, 0, 0, 0],
+                totalCards: 78,
+                limitCounts: [0, 39, Math.floor(39 * 1.5), 39 * 2]
             },
             {
-                name: '-',
-                guesses: 0,
-                totalCards: 104
+                name: ['-', '-', '-', '-'],
+                guesses: [0, 0, 0, 0],
+                totalCards: 104,
+                limitCounts: [0, 52, Math.floor(52 * 1.5), 52 * 2]
             }
         ]
         // 網頁背景模式
         let isTheme = false;
 
         loadData()
-        // 卡牌花色改變
+        // 卡牌花色改變 
         $('.button-sort-suits').on('click', checkCardSuits)
 
         function checkCardSuits() {
@@ -171,23 +193,42 @@
 
         // 重新開始遊戲
         $('.button-restart').on('click', () => {
+            restartGame()
+        })
+
+        function restartGame() {
             $('#game').empty()
             createCard()
             isPerspective = false;
             cardRandomChange()
             guessesCount = 0;
+            limitCount = limitTempCount
             $('.text-guesses').text(`${guessesCount}`)
+
             for (const cards of minguesses) {
                 if (cards.totalCards === cardMax) {
-                    $('.text-minguesses-player').text(cards.name)
-                    $('.text-minguesses').text(cards.guesses)
+                    $('.text-minguesses-player').text(cards.name[limitCountIndex])
+                    $('.text-minguesses').text(cards.guesses[limitCountIndex])
                     $('.text-totalcards').text(cards.totalCards)
+                    $('.text-limit').text(`${limitCountIndex == 0 ? '不限制' : cards.limitCounts[limitCountIndex]}`)
+                    $('.text-minguesseslimit').text(`${limitCountIndex == 0 ? '不限制' : cards.limitCounts[limitCountIndex]}`)
                 }
             }
-        })
+        }
 
         // 卡牌背面樣式
         $('.button-card-back-color').on('click', changeCardBackColor)
+
+        const inputOptions = new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    26: "26",
+                    52: "52",
+                    78: "78",
+                    104: "104"
+                });
+            }, 1000);
+        });
 
         // 切換透視模式
         $('.button-perspective').on('click', () => {
@@ -197,15 +238,60 @@
 
         // 更換卡牌數量
         $('.button-card-quantity').on('click', () => {
-            if (cardMax === 26)
-                cardMax = 52
-            else if (cardMax === 52)
-                cardMax = 78
-            else if (cardMax === 78)
-                cardMax = 104
-            else if (cardMax === 104)
-                cardMax = 26
-            $('.button-card-quantity').attr('value', `卡牌數量:${cardMax}`)
+            Swal.fire({
+                title: '難度選擇',
+                html: `
+                    <div style="display:flex;justify-content:space-evenly;">
+                        <div class="select-box">
+                            <p><b>卡片數量上限:</b></p>
+                            <label><input type="radio" name="group1" value="26">26</label><br>
+                            <label><input type="radio" name="group1" value="52">52</label><br> 
+                            <label><input type="radio" name="group1" value="78">78</label><br>                       
+                            <label><input type="radio" name="group1" value="104">104</label>
+                            </div>
+                        <div class="select-box">
+                            <p><b>次數限制:</b></p>
+                            <label><input type="radio" name="group2" value="0">不限制</label><br>
+                            <label><input type="radio" name="group2" value="1">1倍</label><br> 
+                            <label><input type="radio" name="group2" value="2">1.5倍</label><br>                       
+                            <label><input type="radio" name="group2" value="3">2倍</label>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: '提交',
+                preConfirm: async () => {
+                    const group1Value = document.querySelector('input[name="group1"]:checked')?.value;
+                    const group2Value = document.querySelector('input[name="group2"]:checked')?.value;
+
+                    if (!group1Value || !group2Value) {
+                        Swal.showValidationMessage('請完成選項')
+                        return false;
+                    }
+                    return { group1: group1Value, group2: group2Value }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cardMax = parseInt(result.value.group1)
+
+                    switch (parseInt(result.value.group2)) {
+                        case 0: limitTempCount = 0; limitCountIndex = 0; break
+                        case 1: limitTempCount = Math.floor(result.value.group2 * (cardMax / 2)); limitCountIndex = 1; break
+                        case 2: limitTempCount = Math.floor(1.5 * (cardMax / 2)); limitCountIndex = 2; break
+                        case 3: limitTempCount = Math.floor(2 * (cardMax / 2)); limitCountIndex = 3; break
+                    }
+                    Swal.fire(
+                        {
+                            title: '難度選擇',
+                            html: `
+                            <div style="text-align:left;width:170px;margin:auto;">
+                            卡片數量上限:${result.value.group1}<br>
+                            次數限制:${limitCountIndex == 0 ? '不限制' : limitTempCount}<br>
+                            請按下重新開始遊戲
+                            </div>`
+                        }
+                    )
+                }
+            })
         })
 
         $('.button-theme-toggle').on('click', () => {
@@ -331,9 +417,12 @@
 
             // 如果翻開兩張了
             if ($('.card:not(.card-close)').length === 2) {
-                // 紀錄猜測次數
-                guessesCount += 1
-                $('.text-guesses').text(`${guessesCount}`)
+                if (!isCardActiveState) {
+                    // 紀錄猜測次數
+                    guessesCount += 1
+                    $('.text-guesses').text(`${guessesCount}`)
+                    isCardActiveState = true;
+                }
 
                 // 兩張都一樣
                 if (
@@ -349,16 +438,16 @@
                 setTimeout(function () {
                     // 不館有沒有配對成功都翻回背面
                     $('.card:not(.card-close)').addClass('card-close')
-
+                    isCardActiveState = false;
                     // 已配對數量 = 卡片數量，過關
                     if ($('.card-ok').length == $('.card').length) {
                         alert('過關')
 
                         for (const [index, cards] of minguesses.entries()) {
                             if (cards.totalCards === cardMax) {
-                                if (cards.guesses === 0) {
+                                if (cards.guesses[limitCountIndex] === 0) {
                                     saveData(index)
-                                } else if (guessesCount < cards.guesses) {
+                                } else if (guessesCount < cards.guesses[limitCountIndex]) {
                                     saveData(index)
                                 }
                             }
@@ -366,6 +455,9 @@
 
                         guessesCount = 0;
                         $('.text-guesses').text(`${guessesCount}`)
+                    } else if (limitCount != 0 && guessesCount > limitCount) {
+                        alert('超過限制次數了!!遊戲結束!!')
+                        restartGame()
                     }
                 }, 1000)
 
@@ -377,12 +469,13 @@
                 const data = JSON.parse(localStorage.card)
 
                 for (const [index, cards] of minguesses.entries()) {
-                    cards.name = data[index].name
-                    cards.guesses = data[index].guesses
+                    cards.name[limitCountIndex] = data[index].name[limitCountIndex]
+                    cards.guesses[limitCountIndex] = data[index].guesses[limitCountIndex]
                 }
 
-                $('.text-minguesses-player').text(minguesses[0].name)
-                $('.text-minguesses').text(minguesses[0].guesses)
+                $('.text-minguesses-player').text(minguesses[0].name[limitCountIndex])
+                $('.text-minguesses').text(minguesses[0].guesses[limitCountIndex])
+                $('.text-minguesseslimit').text('不限制')
             }
 
             if (localStorage.getItem('theme')) {
@@ -394,12 +487,12 @@
         }
 
         function saveData(numbers) {
-            const name = prompt(`恭喜你成功破關！卡片數量:${cardMax} 總猜測次數：${guessesCount}，請輸入名子`) || 'user'
-
-            minguesses[numbers].guesses = guessesCount
-            minguesses[numbers].name = name
-            $('.text-minguesses-player').text(minguesses[numbers].name)
-            $('.text-minguesses').text(minguesses[numbers].guesses)
+            const name = prompt(`恭喜你成功破關！卡片數量:${cardMax} 總猜測次數：${guessesCount}，限制次數:${limitCountIndex == 0 ? '不限制' :
+                minguesses[numbers].limitCounts[limitCountIndex]}，請輸入名子`) || 'user'
+            minguesses[numbers].guesses[limitCountIndex] = guessesCount
+            minguesses[numbers].name[limitCountIndex] = name
+            $('.text-minguesses-player').text(minguesses[numbers].name[limitCountIndex])
+            $('.text-minguesses').text(minguesses[numbers].guesses[limitCountIndex])
             // 儲存最低猜測玩家資料
             localStorage.card = JSON.stringify(minguesses)
         }
