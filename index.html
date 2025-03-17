@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>卡牌遊戲</title>
 
     <style>
         body {
@@ -19,11 +19,14 @@
             position: relative;
             border-radius: 10px;
             border: 10px double blue;
-            left: 50%;
-            width: 80%;
-            height: 900px;
-            transform: translateX(-48%);
+            width: 70%;
+            height: auto;
+            min-height: 900px;
+            margin-left: 200px;
+            /* 新增左邊距離，給資訊區預留空間 */
             padding: 10px;
+            transition: transform 0.3s ease;
+            /* 添加轉場效果 */
         }
 
         /* 卡牌 */
@@ -101,6 +104,76 @@
             justify-content: space-around;
         }
 
+        /* 漢堡選單容器 */
+        .hamburger-menu {
+            display: none;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        /* 漢堡選單圖示 */
+        .hamburger-icon {
+            width: 35px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            cursor: pointer;
+        }
+
+        /* 漢堡選單的三條線 */
+        .hamburger-line {
+            width: 100%;
+            height: 4px;
+            background-color: blue;
+            transition: all 0.3s ease;
+        }
+
+        /* 展開時的選單內容 */
+        .hamburger-content {
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: black;
+            border: 3px solid blue;
+            border-radius: 10px;
+            padding: 0 0 20px 20px;
+            z-index: 99;
+        }
+
+        .hamburger-item {
+            margin-right: 20px;
+        }
+
+        .close-btn {
+            display: block;
+            text-align: end;
+            color: white;
+            margin-right: 10px;
+            margin-top: 5px;
+
+            span:hover {
+                cursor: pointer;
+            }
+        }
+
+
+        /* 選單開啟時的樣式 */
+        .hamburger-active .hamburger-content {
+            display: block;
+        }
+
+        .hamburger-item {
+            margin-bottom: 5px;
+            cursor: pointer;
+
+            &:hover {
+                background-color: gray;
+            }
+        }
+
         /* 深色模式 */
         .dark-mode {
             background: black;
@@ -116,7 +189,8 @@
 
         /* 功能選項樣式 */
         .list-box {
-            width: 200px;
+            max-width: 200px;
+            width: 100%;
             height: 30px;
             background: blue;
             color: yellow;
@@ -134,30 +208,77 @@
         .now-info {
             display: flex;
             flex-wrap: wrap;
-            position: absolute;
+            position: fixed;
             justify-content: center;
             align-items: center;
-            top: 10%;
-            left: 1%;
+            top: 60px;
+            left: 10px;
             border: 5px double blue;
             border-radius: 10px;
             width: 140px;
             height: 100px;
+            z-index: 1;
+            /* 確保顯示在上層 */
         }
 
         /* 最低猜測玩家文字容器 */
         .minguesses-player-info {
             display: flex;
             flex-wrap: wrap;
-            position: absolute;
+            position: fixed;
+            /* 改為 fixed 定位 */
             justify-content: center;
             align-items: center;
-            top: 30%;
-            left: 1%;
+            top: 180px;
+            left: 10px;
             border: 5px double blue;
             border-radius: 10px;
             width: 150px;
             height: 300px;
+            z-index: 1;
+            /* 確保顯示在上層 */
+        }
+
+        /* 小於960px 不顯示功能選單 */
+        @media (max-width: 960px) {
+            .list {
+                display: none;
+            }
+
+            .hamburger-menu {
+                display: block;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            #game {
+                width: calc(100% - 180px);
+                margin-left: 170px;
+                transform: translateX(0);
+                /* 讓內容向左對齊 */
+            }
+
+            .now-info,
+            .minguesses-player-info {
+                left: 5px;
+                width: 130px;
+            }
+        }
+
+        /* 更小螢幕時的樣式 */
+        @media screen and (max-width: 480px) {
+            #game {
+                width: calc(100% - 150px);
+                margin-left: 140px;
+                padding: 5px;
+            }
+
+            /* 調整卡片大小 */
+            .card {
+                width: 60px;
+                height: 85px;
+                margin: 5px;
+            }
         }
     </style>
 </head>
@@ -171,6 +292,22 @@
         <div class="button-perspective list-box">透視模式</div>
         <div class="button-card-quantity list-box">難度選擇</div>
         <div class="button-theme-toggle list-box"><span>夜</span></div>
+    </div>
+    <div class="hamburger-menu">
+        <div class="hamburger-icon">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </div>
+        <div class="hamburger-content">
+            <div class="close-btn"><span>✕</span></div>
+            <div class="button-sort-suits hamburger-item">卡牌花色改變</div>
+            <div class="button-restart hamburger-item">重新開始遊戲</div>
+            <div class="button-card-back-color hamburger-item"><span>卡牌背面顏色:紅色</span></div>
+            <div class="button-perspective hamburger-item">透視模式</div>
+            <div class="button-card-quantity hamburger-item">難度選擇</div>
+            <div class="button-theme-toggle hamburger-item"><span>夜</span></div>
+        </div>
     </div>
     <div class="now-info">目前猜測次數:<span class="text-guesses">0</span>限制次數:<span class="text-limit">不限制</span>
     </div>
@@ -240,6 +377,21 @@
         ]
         // 網頁背景模式
         let isTheme = false;
+
+        // 漢堡選單
+        $('.hamburger-icon').on('click', () => {
+            $('.hamburger-menu').toggleClass('hamburger-active')
+        })
+        // 關閉漢堡選單
+        $('.close-btn>span').on('click', () => {
+            $('.hamburger-menu').removeClass('hamburger-active')
+        })
+        // 點視窗任何地方都會關閉選單
+        $(window).on('click', (e) => {
+            if (!$(e.target).closest('.hamburger-menu').length) {
+                $('.hamburger-menu').removeClass('hamburger-active')
+            }
+        })
 
         loadData()
         // 卡牌花色改變 
@@ -619,10 +771,14 @@
                 $('.button-theme-toggle>span').text('日')
                 $('body').addClass('dark-mode')
                 $('.list:not(span)').addClass('dark-mode')
+                $('.hamburger-content').css('background', 'black')
+                $('.close-btn').css('color', 'white')
             } else if (!isTheme) {
                 $('.button-theme-toggle>span').text('夜')
                 $('body').removeClass('dark-mode')
                 $('.list:not(span)').removeClass('dark-mode')
+                $('.hamburger-content').css('background', 'white')
+                $('.close-btn').css('color', 'black')
             }
         }
     </script>
